@@ -1,0 +1,75 @@
+apiVersion: charts.janus-idp.io/v1alpha1
+kind: Backstage
+metadata:
+  name: backstage-sample
+spec:
+  # Default values copied from <project_dir>/helm-charts/backstage/values.yaml
+  route:
+    annotations: {}
+    enabled: true
+    host: ""
+    path: /
+    tls:
+      caCertificate: ""
+      certificate: ""
+      destinationCACertificate: ""
+      enabled: true
+      insecureEdgeTerminationPolicy: Redirect
+      key: ""
+      termination: edge
+    wildcardPolicy: None
+  upstream:
+    backstage:
+      appConfig:
+        app:
+          baseUrl: https://{{- print .Release.Name "-" .Release.Namespace -}}.apps.example.com
+        backend:
+          baseUrl: https://{{- print .Release.Name "-" .Release.Namespace -}}.apps.example.com
+          cors:
+            origin: https://{{- print .Release.Name "-" .Release.Namespace -}}.apps.example.com
+          database:
+            connection:
+              password: ${POSTGRESQL_ADMIN_PASSWORD}
+              user: postgres
+      command: []
+      extraEnvVars:
+      - name: POSTGRESQL_ADMIN_PASSWORD
+        valueFrom:
+          secretKeyRef:
+            key: postgres-password
+            name: '{{ .Release.Name }}-postgresql'
+      image:
+        registry: quay.io
+        repository: janus-idp/backstage-showcase
+        tag: latest
+    nameOverride: backstage
+    postgresql:
+      auth:
+        secretKeys:
+          adminPasswordKey: postgres-password
+          userPasswordKey: password
+      enabled: true
+      image:
+        registry: quay.io
+        repository: fedora/postgresql-15
+        tag: latest
+      postgresqlDataDir: /var/lib/pgsql/data/userdata
+      primary:
+        containerSecurityContext:
+          enabled: false
+        extraEnvVars:
+        - name: POSTGRESQL_ADMIN_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              key: postgres-password
+              name: '{{ .Release.Name }}-postgresql'
+        persistence:
+          enabled: true
+          mountPath: /var/lib/pgsql/data
+          size: 1Gi
+        podSecurityContext:
+          enabled: false
+        securityContext:
+          enabled: false
+  
+  

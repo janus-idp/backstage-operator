@@ -1,0 +1,4 @@
+[submodule "helm-backstage"]
+	path = helm-backstage
+	url = git@github.com:janus-idp/helm-backstage.git
+	branch = main

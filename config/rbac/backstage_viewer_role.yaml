@@ -1,0 +1,27 @@
+# permissions for end users to view backstages.
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  labels:
+    app.kubernetes.io/name: clusterrole
+    app.kubernetes.io/instance: backstage-viewer-role
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/created-by: operator
+    app.kubernetes.io/part-of: operator
+    app.kubernetes.io/managed-by: kustomize
+  name: backstage-viewer-role
+rules:
+- apiGroups:
+  - charts.janus-idp.io
+  resources:
+  - backstages
+  verbs:
+  - get
+  - list
+  - watch
+- apiGroups:
+  - charts.janus-idp.io
+  resources:
+  - backstages/status
+  verbs:
+  - get

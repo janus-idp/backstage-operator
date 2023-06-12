@@ -1,0 +1,36 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"type": "shell",
+			"label": "make install",
+			"command": "",
+			"args": [
+				"make",
+				"install",
+				"--directory=${workspaceFolder};",
+			],
+			"group": "build",
+		},
+		{
+			"type": "shell",
+			"label": "make init",
+			"command": "",
+			"args": [
+				"make",
+				"init",
+				"--directory=${workspaceFolder};",
+			],
+			"group": "build",
+		},
+		{
+			"label": "before-debug",
+			"dependsOrder": "sequence",
+			"dependsOn": [
+				"make init",
+				"make install"
+			]
+
+		}
+	]
+}
