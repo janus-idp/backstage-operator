@@ -20,13 +20,13 @@ WORKDIR /workspace
 
 COPY $EXTERNAL_SOURCE ./
 
-# Downstream comment
 # cache deps before building and copying source so that we don't need to re-download as much
 # and so that source changes don't invalidate our downloaded layer
+# Downstream comment
 RUN go mod download
 #/ Downstream comment
 
-#/ Downstream uncomment
+# Downstream uncomment
 # COPY $REMOTE_SOURCES/upstream1/cachito.env ./
 # RUN source ./cachito.env && rm -f ./cachito.env && mkdir -p /workspace
 #/ Downstream uncomment
