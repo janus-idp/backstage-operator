@@ -1,5 +1,6 @@
 # Build the manager binary
 FROM registry.access.redhat.com/ubi9/go-toolset:latest as builder
+USER 0
 
 WORKDIR /workspace
 # Copy the Go Modules manifests
@@ -11,8 +12,8 @@ RUN go mod download
 
 # Copy the go source
 COPY main.go main.go
-COPY api/ api/
-COPY controllers/ controllers/
+# COPY api/ api/
+# COPY controllers/ controllers/
 
 # Build
 RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -a -o manager main.go
