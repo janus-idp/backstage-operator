@@ -1,7 +1,7 @@
 ---
 name: Bug Report
 about: If something isn't working
-labels: ["kind/bug", "status/triage"]
+labels: [kind/bug, status/triage]
 ---
 
 ### Describe the bug

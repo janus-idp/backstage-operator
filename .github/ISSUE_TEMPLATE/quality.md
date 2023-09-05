@@ -1,7 +1,7 @@
 ---
 name: Quality Assurance
 about: Tests for code changes
-labels: ['kind/quality', 'status/triage']
+labels: [kind/quality, status/triage]
 ---
 
 ### What needs to be tested
