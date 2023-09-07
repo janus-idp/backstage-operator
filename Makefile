@@ -87,6 +87,7 @@ help: ## Display this help.
 
 .PHONY: init
 init:
+	git submodule init
 	git submodule update
 	helm dependency build helm-backstage/charts/backstage
 
