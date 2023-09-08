@@ -17,6 +17,7 @@ limitations under the License.
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"os"
@@ -35,9 +36,12 @@ import (
 
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	ctrlruntime "k8s.io/apimachinery/pkg/runtime"
+	"k8s.io/apimachinery/pkg/runtime/schema"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	//+kubebuilder:scaffold:imports
@@ -110,6 +114,33 @@ func main() {
 		os.Exit(1)
 	}
 
+	// PreHook to set global.clusterRouterBase based on the cluster's ingress config
+	setClusterRouterBase := hook.PreHookFunc(func(obj *unstructured.Unstructured, vals chartutil.Values, log logr.Logger) error {
+		cl, err := client.New(config.GetConfigOrDie(), client.Options{})
+		if err != nil {
+			return err
+		}
+
+		ingressConfig := &unstructured.Unstructured{}
+		ingressConfig.SetGroupVersionKind(schema.GroupVersionKind{
+			Group:   "config.openshift.io",
+			Kind:    "Ingress",
+			Version: "v1",
+		})
+
+		cl.Get(context.Background(), client.ObjectKey{
+			Name:      "cluster",
+			Namespace: "",
+		}, ingressConfig)
+
+		domain := ingressConfig.Object["spec"].(map[string]interface{})["domain"]
+
+		vals.AsMap()["global"].(map[string]interface{})["clusterRouterBase"] = domain
+		log.V(1).Info(fmt.Sprintf("PreHook: setting global.clusterRouterBase to %s", domain))
+
+		return nil
+	})
+
 	for _, w := range ws {
 		// Register controller with the factory
 		reconcilePeriod := defaultReconcilePeriod
@@ -132,11 +163,8 @@ func main() {
 			reconciler.WithInstallAnnotations(annotation.DefaultInstallAnnotations...),
 			reconciler.WithUpgradeAnnotations(annotation.DefaultUpgradeAnnotations...),
 			reconciler.WithUninstallAnnotations(annotation.DefaultUninstallAnnotations...),
-			reconciler.WithPreHook(hook.PreHookFunc(func(obj *unstructured.Unstructured, vals chartutil.Values, log logr.Logger) error {
-				vals.AsMap()["global"].(map[string]interface{})["clusterRouterBase"] = "lol"
-				log.Info(fmt.Sprintf("%s", vals.AsMap()))
-				return nil
-			})))
+			reconciler.WithPreHook(setClusterRouterBase),
+		)
 
 		if err != nil {
 			setupLog.Error(err, "unable to create helm reconciler", "controller", "Helm")
