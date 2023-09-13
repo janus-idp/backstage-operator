@@ -34,6 +34,8 @@ import (
 	"helm.sh/helm/v3/pkg/chartutil"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
+	"k8s.io/apimachinery/pkg/api/errors"
+	"k8s.io/apimachinery/pkg/api/meta"
 	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
 	ctrlruntime "k8s.io/apimachinery/pkg/runtime"
 	"k8s.io/apimachinery/pkg/runtime/schema"
@@ -128,10 +130,18 @@ func main() {
 			Version: "v1",
 		})
 
-		cl.Get(context.Background(), client.ObjectKey{
+		err = cl.Get(context.Background(), client.ObjectKey{
 			Name:      "cluster",
 			Namespace: "",
 		}, ingressConfig)
+
+		if err != nil {
+			if errors.IsNotFound(err) || meta.IsNoMatchError(err) {
+				log.V(1).Info("PreHook: no cluster ingress config found, skipping setting global.clusterRouterBase")
+				return nil
+			}
+			return err
+		}
 
 		domain := ingressConfig.Object["spec"].(map[string]interface{})["domain"]
 
