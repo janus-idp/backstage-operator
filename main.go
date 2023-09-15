@@ -17,28 +17,21 @@ limitations under the License.
 package main
 
 import (
-	"context"
 	"flag"
-	"fmt"
 	"os"
 	"runtime"
 	"time"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
-
-	"github.com/go-logr/logr"
-	"github.com/operator-framework/helm-operator-plugins/pkg/annotation"
-	"github.com/operator-framework/helm-operator-plugins/pkg/hook"
-	"github.com/operator-framework/helm-operator-plugins/pkg/reconciler"
-	"github.com/operator-framework/helm-operator-plugins/pkg/watches"
-	"helm.sh/helm/v3/pkg/chartutil"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
-	"k8s.io/apimachinery/pkg/api/errors"
-	"k8s.io/apimachinery/pkg/api/meta"
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"github.com/janus-idp/backstage-operator/pkg/hooks"
+
+	"github.com/operator-framework/helm-operator-plugins/pkg/annotation"
+	"github.com/operator-framework/helm-operator-plugins/pkg/reconciler"
+	"github.com/operator-framework/helm-operator-plugins/pkg/watches"
+
 	ctrlruntime "k8s.io/apimachinery/pkg/runtime"
-	"k8s.io/apimachinery/pkg/runtime/schema"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -116,41 +109,6 @@ func main() {
 		os.Exit(1)
 	}
 
-	// PreHook to set global.clusterRouterBase based on the cluster's ingress config
-	setClusterRouterBase := hook.PreHookFunc(func(obj *unstructured.Unstructured, vals chartutil.Values, log logr.Logger) error {
-		cl, err := client.New(config.GetConfigOrDie(), client.Options{})
-		if err != nil {
-			return err
-		}
-
-		ingressConfig := &unstructured.Unstructured{}
-		ingressConfig.SetGroupVersionKind(schema.GroupVersionKind{
-			Group:   "config.openshift.io",
-			Kind:    "Ingress",
-			Version: "v1",
-		})
-
-		err = cl.Get(context.Background(), client.ObjectKey{
-			Name:      "cluster",
-			Namespace: "",
-		}, ingressConfig)
-
-		if err != nil {
-			if errors.IsNotFound(err) || meta.IsNoMatchError(err) {
-				log.V(1).Info("PreHook: no cluster ingress config found, skipping setting global.clusterRouterBase")
-				return nil
-			}
-			return err
-		}
-
-		domain := ingressConfig.Object["spec"].(map[string]interface{})["domain"]
-
-		vals.AsMap()["global"].(map[string]interface{})["clusterRouterBase"] = domain
-		log.V(1).Info(fmt.Sprintf("PreHook: setting global.clusterRouterBase to %s", domain))
-
-		return nil
-	})
-
 	for _, w := range ws {
 		// Register controller with the factory
 		reconcilePeriod := defaultReconcilePeriod
@@ -163,6 +121,16 @@ func main() {
 			maxConcurrentReconciles = *w.MaxConcurrentReconciles
 		}
 
+		cl, err := client.New(config.GetConfigOrDie(), client.Options{})
+		if err != nil {
+			setupLog.Error(err, "Failed to create new client")
+			os.Exit(1)
+		}
+
+		setClusterRouterBaseHook := &hooks.SetClusterRouterBase{
+			Client: cl,
+		}
+
 		r, err := reconciler.New(
 			reconciler.WithChart(*w.Chart),
 			reconciler.WithGroupVersionKind(w.GroupVersionKind),
@@ -173,7 +141,7 @@ func main() {
 			reconciler.WithInstallAnnotations(annotation.DefaultInstallAnnotations...),
 			reconciler.WithUpgradeAnnotations(annotation.DefaultUpgradeAnnotations...),
 			reconciler.WithUninstallAnnotations(annotation.DefaultUninstallAnnotations...),
-			reconciler.WithPreHook(setClusterRouterBase),
+			reconciler.WithPreHook(setClusterRouterBaseHook),
 		)
 
 		if err != nil {

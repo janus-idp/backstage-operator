@@ -1,4 +1,4 @@
-module github.com/janus-idp/operator
+module github.com/janus-idp/backstage-operator
 
 go 1.19
 
