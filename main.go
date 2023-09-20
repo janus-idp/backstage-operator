@@ -18,26 +18,25 @@ package main
 
 import (
 	"flag"
-	"fmt"
 	"os"
 	"runtime"
 	"time"
 
 	// Import all Kubernetes client auth plugins (e.g. Azure, GCP, OIDC, etc.)
-
-	"github.com/go-logr/logr"
-	"github.com/operator-framework/helm-operator-plugins/pkg/annotation"
-	"github.com/operator-framework/helm-operator-plugins/pkg/hook"
-	"github.com/operator-framework/helm-operator-plugins/pkg/reconciler"
-	"github.com/operator-framework/helm-operator-plugins/pkg/watches"
-	"helm.sh/helm/v3/pkg/chartutil"
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
-	"k8s.io/apimachinery/pkg/apis/meta/v1/unstructured"
+	"github.com/janus-idp/backstage-operator/pkg/hooks"
+
+	"github.com/operator-framework/helm-operator-plugins/pkg/annotation"
+	"github.com/operator-framework/helm-operator-plugins/pkg/reconciler"
+	"github.com/operator-framework/helm-operator-plugins/pkg/watches"
+
 	ctrlruntime "k8s.io/apimachinery/pkg/runtime"
 	utilruntime "k8s.io/apimachinery/pkg/util/runtime"
 	clientgoscheme "k8s.io/client-go/kubernetes/scheme"
 	ctrl "sigs.k8s.io/controller-runtime"
+	"sigs.k8s.io/controller-runtime/pkg/client"
+	"sigs.k8s.io/controller-runtime/pkg/client/config"
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 	//+kubebuilder:scaffold:imports
@@ -122,6 +121,16 @@ func main() {
 			maxConcurrentReconciles = *w.MaxConcurrentReconciles
 		}
 
+		cl, err := client.New(config.GetConfigOrDie(), client.Options{})
+		if err != nil {
+			setupLog.Error(err, "Failed to create new client")
+			os.Exit(1)
+		}
+
+		setClusterRouterBaseHook := &hooks.SetClusterRouterBase{
+			Client: cl,
+		}
+
 		r, err := reconciler.New(
 			reconciler.WithChart(*w.Chart),
 			reconciler.WithGroupVersionKind(w.GroupVersionKind),
@@ -132,11 +141,8 @@ func main() {
 			reconciler.WithInstallAnnotations(annotation.DefaultInstallAnnotations...),
 			reconciler.WithUpgradeAnnotations(annotation.DefaultUpgradeAnnotations...),
 			reconciler.WithUninstallAnnotations(annotation.DefaultUninstallAnnotations...),
-			reconciler.WithPreHook(hook.PreHookFunc(func(obj *unstructured.Unstructured, vals chartutil.Values, log logr.Logger) error {
-				vals.AsMap()["global"].(map[string]interface{})["clusterRouterBase"] = "lol"
-				log.Info(fmt.Sprintf("%s", vals.AsMap()))
-				return nil
-			})))
+			reconciler.WithPreHook(setClusterRouterBaseHook),
+		)
 
 		if err != nil {
 			setupLog.Error(err, "unable to create helm reconciler", "controller", "Helm")
