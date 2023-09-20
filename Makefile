@@ -89,6 +89,9 @@ help: ## Display this help.
 init:
 	git submodule init
 	git submodule update
+	helm repo add --force-update bitnami https://charts.bitnami.com/bitnami
+	helm repo add --force-update backstage https://backstage.github.io/charts
+	helm repo add --force-update janus-idp https://janus-idp.github.io/helm-backstage
 	helm dependency build helm-backstage/charts/backstage
 
 .PHONY: manifests
