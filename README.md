@@ -3,7 +3,7 @@
 Reconciler logic: https://github.com/operator-framework/helm-operator-plugins/blob/main/pkg/reconciler/reconciler.go
 Hybrid operators lacks documentation, see:
 
-- https://gthub.com/operator-framework/helm-operator-plugins/issues/136
+- https://github.com/operator-framework/helm-operator-plugins/issues/136
 - https://docs.openshift.com/container-platform/4.10/operators/operator_sdk/helm/osdk-hybrid-helm.html
 
 ## Setup
