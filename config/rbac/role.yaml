@@ -13,6 +13,7 @@ rules:
   - namespaces
   verbs:
   - get
+
 # We need to manage Helm release secrets
 - apiGroups:
   - ""
@@ -20,6 +21,7 @@ rules:
   - secrets
   verbs:
   - "*"
+
 # We need to create events on CRs about things happening during reconciliation
 - apiGroups:
   - ""
@@ -27,6 +29,14 @@ rules:
   - events
   verbs:
   - create
+
+# We need to get Ingress to set global.clusterRouterBase
+- apiGroups:
+  - config.openshift.io
+  resources:
+  - ingresses
+  verbs:
+  - get
 
 ##
 ## Rules for charts.janus-idp.io/v1alpha1, Kind: Backstage
