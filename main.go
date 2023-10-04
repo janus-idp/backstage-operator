@@ -26,7 +26,6 @@ import (
 	_ "k8s.io/client-go/plugin/pkg/client/auth"
 
 	"github.com/janus-idp/backstage-operator/pkg/hooks"
-
 	"github.com/operator-framework/helm-operator-plugins/pkg/annotation"
 	"github.com/operator-framework/helm-operator-plugins/pkg/reconciler"
 	"github.com/operator-framework/helm-operator-plugins/pkg/watches"
@@ -131,6 +130,10 @@ func main() {
 			Client: cl,
 		}
 
+		checkPostPassword := &hooks.CheckPostPassword{
+			Client: cl,
+		}
+
 		r, err := reconciler.New(
 			reconciler.WithChart(*w.Chart),
 			reconciler.WithGroupVersionKind(w.GroupVersionKind),
@@ -142,6 +145,7 @@ func main() {
 			reconciler.WithUpgradeAnnotations(annotation.DefaultUpgradeAnnotations...),
 			reconciler.WithUninstallAnnotations(annotation.DefaultUninstallAnnotations...),
 			reconciler.WithPreHook(setClusterRouterBaseHook),
+			reconciler.WithPostHook(checkPostPassword),
 		)
 
 		if err != nil {
