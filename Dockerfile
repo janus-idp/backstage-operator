@@ -32,11 +32,23 @@ RUN go mod download
 #/ Downstream uncomment
 
 # Build
-RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -a -o /workspace/manager main.go && ls -la /workspace/
+RUN CGO_ENABLED=1 GOOS=linux GOARCH=amd64 go build -a -o /workspace/manager main.go 
+# debug
+# RUN ls -la /workspace/ $CONTAINER_SOURCE/helm-backstage/charts/backstage/charts/
 
 # NOTE: ubi-micro is not be FIPS compliant, if openssl is not installed
 #@follow_tag(registry.redhat.io/ubi9/ubi-micro:9.2)
 FROM registry.access.redhat.com/ubi9/ubi-micro:9.2
+
+# Upstream sources
+# Downstream comment
+ENV EXTERNAL_SOURCE=.
+#/ Downstream comment
+
+# Downstream sources
+# Downstream uncomment
+# ENV EXTERNAL_SOURCE=$REMOTE_SOURCES/upstream1/app/distgit/containers/rhdh-operator
+#/ Downstream uncomment
 
 ENV HOME=/opt/helm \
     USER_NAME=helm \
@@ -45,8 +57,11 @@ ENV HOME=/opt/helm \
 RUN echo "${USER_NAME}:x:${USER_UID}:0:${USER_NAME} user:${HOME}:/sbin/nologin" >> /etc/passwd
 
 # Copy necessary files with the right permissions
-COPY --chown=${USER_UID}:0 watches.yaml ${HOME}/watches.yaml
-COPY --chown=${USER_UID}:0 helm-backstage  ${HOME}/helm-backstage
+COPY --chown=${USER_UID}:0 ${EXTERNAL_SOURCE}/watches.yaml ${HOME}/watches.yaml
+COPY --chown=${USER_UID}:0 ${EXTERNAL_SOURCE}/helm-backstage/ ${HOME}/helm-backstage/
+
+# debug 
+# RUN ls -la ${HOME} ${HOME}/helm-backstage/charts/backstage/charts/
 
 # Copy manager binary
 COPY --from=builder /workspace/manager .
