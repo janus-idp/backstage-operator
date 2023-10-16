@@ -262,4 +262,11 @@ catalog-push: ## Push a catalog image.
 # Build and push all images (operator, bundle and catalog).
 # don't forget to set IMG and IMAGE_TAG_BASE vars
 .PHONY: build-push-all
-build-push-all: podman-build podman-push bundle bundle-build bundle-push catalog-build catalog-push
+build-push-all: podman-build podman-push bundle bundle-build bundle-push catalog-build catalog-push operator-hub-manifests
+
+
+# Build CatalogSource  manifest for Operator Hub
+# don't forget to set IMG IMAGE_TAG_BASE
+.PHONY: operator-hub-manifests
+operator-hub-manifests:
+	cd config/operator-hub && $(KUSTOMIZE) edit set image catalog=$(IMAGE_TAG_BASE)-catalog:v$(VERSION)

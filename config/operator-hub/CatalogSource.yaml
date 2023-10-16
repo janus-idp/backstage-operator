@@ -1,0 +1,10 @@
+apiVersion: operators.coreos.com/v1alpha1
+kind: CatalogSource
+metadata:
+  name: rhdh-dev
+  namespace: openshift-operators
+spec:
+  sourceType: grpc
+  image: catalog
+  publisher: RHDH Developer
+  displayName: RHDH dev

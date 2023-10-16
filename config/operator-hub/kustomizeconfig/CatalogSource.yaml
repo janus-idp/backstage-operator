@@ -1,0 +1,6 @@
+
+
+# custom kustomize transformer to support image patching
+images:
+- path: spec/image
+  kind: CatalogSource

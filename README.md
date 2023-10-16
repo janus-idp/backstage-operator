@@ -15,7 +15,7 @@ make install
 
 ## Run
 
-Containerized:
+### Containerized
 
 ```console
 export IMG=quay.io/<foo>/<bar>:latest
@@ -24,14 +24,28 @@ make podman-push
 make deploy
 ```
 
-Or locally:
+### Inside OpenShift cluster using OperatorHub
+
+#### 1. build and push all images
+```console
+VERSION=0.0.1-dev1 IMG=quay.io/<username>/janus-operator:$VERSION IMAGE_TAG_BASE=quay.io/<username>/janus-operator make build-push-all
+```
+
+#### 2. add CatalogSource to OperatorHub
+```console
+./bin/kustomize build config/catalog/ | oc apply -f -
+```
+
+#### 3. Install RHDH-dev from OperatorHub using OpenShift Web Console
+
+### Locally
 
 ```console
 export WATCH_NAMESPACE=baz
 make run
 ```
 
-Or in VSCode:
+### in VSCode:
 
 1. Edit namespace in `.vscode/launch.json`
 2. `CTRL+SHIFT+D`, run **Launch Backstage Operator**
