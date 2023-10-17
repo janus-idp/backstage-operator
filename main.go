@@ -131,6 +131,12 @@ func main() {
 			Client: cl,
 		}
 
+		randomString := &hooks.DefaultRandomStringGenerator{}
+		checkPostPassword := &hooks.CheckPostPassword{
+			Client:    cl,
+			Generator: randomString,
+		}
+
 		r, err := reconciler.New(
 			reconciler.WithChart(*w.Chart),
 			reconciler.WithGroupVersionKind(w.GroupVersionKind),
@@ -142,6 +148,7 @@ func main() {
 			reconciler.WithUpgradeAnnotations(annotation.DefaultUpgradeAnnotations...),
 			reconciler.WithUninstallAnnotations(annotation.DefaultUninstallAnnotations...),
 			reconciler.WithPreHook(setClusterRouterBaseHook),
+			reconciler.WithPreHook(checkPostPassword),
 		)
 
 		if err != nil {
