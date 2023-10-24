@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/go-logr/logr v1.2.3
 	github.com/operator-framework/helm-operator-plugins v0.0.11
-	github.com/stretchr/testify v1.8.1
+	github.com/stretchr/testify v1.8.4
 	helm.sh/helm/v3 v3.11.1
 	k8s.io/apimachinery v0.26.0
 	k8s.io/client-go v0.26.0
