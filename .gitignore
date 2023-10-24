@@ -12,3 +12,6 @@ bin
 *.swp
 *.swo
 *~
+
+# go coverage
+cover.out
