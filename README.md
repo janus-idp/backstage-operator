@@ -33,7 +33,7 @@ VERSION=0.0.1-dev1 IMG=quay.io/<username>/janus-operator:$VERSION IMAGE_TAG_BASE
 
 #### 2. add CatalogSource to OperatorHub
 ```console
-./bin/kustomize build config/catalog/ | oc apply -f -
+./bin/kustomize build config/operator-hub/ | oc apply -f -
 ```
 
 #### 3. Install RHDH-dev from OperatorHub using OpenShift Web Console
