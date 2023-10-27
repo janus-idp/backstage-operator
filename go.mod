@@ -3,7 +3,7 @@ module github.com/janus-idp/backstage-operator
 go 1.19
 
 require (
-	github.com/go-logr/logr v1.2.3
+	github.com/go-logr/logr v1.3.0
 	github.com/operator-framework/helm-operator-plugins v0.0.11
 	github.com/stretchr/testify v1.8.1
 	helm.sh/helm/v3 v3.11.1
