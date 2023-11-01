@@ -1,5 +1,10 @@
 # Hybrid Helm/Golang operator for Backstage prototype
 
+> [!WARNING]
+> This project is no longer actively maintained. The repository has been archived, and its contents are available for historical and reference purposes only.
+> 
+
+
 Reconciler logic: https://github.com/operator-framework/helm-operator-plugins/blob/main/pkg/reconciler/reconciler.go
 Hybrid operators lacks documentation, see:
 
